@@ -1,0 +1,26 @@
+---
+- name: Instalar Zabbix Agent
+  hosts: vm-kaio
+  become: yes  # Permite a execução de comandos com privilégios de superusuário (sudo)
+
+  tasks:
+    - name: Atualizar lista de pacotes
+      apt:
+        update_cache: yes
+
+    - name: Instalar Zabbix Agent
+      apt:
+        name: zabbix-agent
+        state: present
+
+    - name: Configurar o arquivo de configuração do Zabbix Agent
+      template:
+        src: templates/zabbix_agentd.conf.j2
+        dest: /etc/zabbix/zabbix_agentd.conf
+      notify: Reiniciar serviço Zabbix Agent
+
+    - name: Reiniciar serviço Zabbix Agent
+      service:
+        name: zabbix-agent
+        state: restarted
+

@@ -1,0 +1,7 @@
+---
+- name: Executar comando com módulo shell
+  hosts: vm-kaio
+  tasks:
+    - name: Executar comando de desligamento de servidores
+      become: yes
+      command: poweroff
