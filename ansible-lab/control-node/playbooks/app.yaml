@@ -11,16 +11,16 @@
     - dbusername: "notesapp"
     - dbpassword: "devopsmaonamassa"
   tasks:
-    - name: Adicionar usuario de App
+    - name: Adicionar usuario de app
       user:
         name: app
         comment: Usuario de aplicação
         uid: 500
-    - name: Instalação do Maven
+    - name: Donwload do maven 
       get_url:
         url: https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.1.0/apache-maven-3.1.0-bin.tar.gz
         dest: /opt/apache-maven-3.1.0-bin.tar.gz
-    - name: Descompactar pacote maven
+    - name: Unzip do pacote maven
       ansible.builtin.unarchive:
         src: /opt/apache-maven-3.1.0-bin.tar.gz
         dest: /opt/
@@ -35,14 +35,10 @@
         state: directory
         owner: app
         group: app
-    - name: Upgrade de todos os pacotes do SO
-      yum:
-        name: '*'
-        state: latest
-    - name: instalação do git client
+    - name: instalacao do git client
       yum:
         name: git
-        state: latest       
+        state: latest
     - name: Clone do repositório Notes - app
       git:
         repo: 'https://github.com/callicoder/spring-boot-mysql-rest-api-tutorial.git'
@@ -53,23 +49,26 @@
       template:
         src: pom.xml
         dest: /opt/notes/pom.xml
-    - name: Configurar arquivo de propriedade para a camada de banco de dados (Template)
+    - name: Configurar arquivo de propriedades para camada de banco de dados
       template:
         src: application.properties
         dest: /opt/notes/src/main/resources/application.properties
-    - name: Gerar pacotes da aplicação
+    - name: Gerar pacote da aplicação
       command: /opt/apache-maven-3.1.0/bin/mvn -f /opt/notes/pom.xml package
       become_user: app
     - name: Registrar versao atual do pacote
       shell:
-        cmd: /opt/apache-maven-3.1.0/bin/mvn org.apache.maven.plugins:2.1.1:evaluate -Dexpression=project.version | grep -v '\['
+        cmd: /opt/apache-maven-3.1.0/bin/mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | grep -v '\['
         chdir: /opt/notes/
       register: app_version
-    - name: Configurar serviço do systemd
-      template: 
+    - name: Configurar serviço do Systemd
+      template:
         src: etc/systemd/system/notes.service
         dest: /etc/systemd/system/notes.service
-        notify: reload daemon
+        owner: root
+        group: root
+        mode: '0600'
+      notify: reload daemon
     - name: Iniciar serviço notes
       service:
         name: notes
@@ -80,14 +79,8 @@
     - name: reload app
       systemd:
         state: restarted
-        daemon_reload: yes
+        daemon_reload: yes 
         name: 'notes'
     - name: reload daemon
       systemd:
         daemon_reexec: yes
-
-
-
-
-
-  
